@@ -1,6 +1,6 @@
 CREATE DATABASE elm_workshop;
 
-\c haskell_tools
+\c elm_workshop
 CREATE EXTENSION unaccent;
 CREATE EXTENSION pg_trgm;
 -- Private data structures
@@ -21,7 +21,6 @@ CREATE TABLE public.packages (
 
 CREATE TABLE public.repos (
   package_name text PRIMARY KEY REFERENCES packages,
-  repo_url text NOT NULL,
   stars integer NOT NULL DEFAULT 0,
   forks integer NOT NULL DEFAULT 0,
   collaborators integer NOT NULL DEFAULT 1,
@@ -140,9 +139,8 @@ FROM
 GROUP BY
   p.package_name, r.package_name;
 
-CREATE USER postgrest PASSWORD :password;
+CREATE USER postgrest PASSWORD 'temporary_password';
 CREATE ROLE anonymous;
 GRANT anonymous TO postgrest;
 GRANT USAGE ON SCHEMA api TO anonymous;
-GRANT EXECUTE ON FUNCTION api.package_search(text) TO anonymous;
 GRANT SELECT ON ALL TABLES IN SCHEMA api TO anonymous;
