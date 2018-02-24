@@ -1,14 +1,14 @@
 module ElmWorkshop exposing (Model, Msg, main, view, update)
 
-import Html.App as App
+import Html as App
 import Html exposing (..)
 import Html.Attributes exposing (href, placeholder, class, target)
 import Html.Events exposing (..)
 
+import Http exposing (Error)
 import Json.Encode as Encode
-import Json.Decode exposing (Decoder, string, list, int)
-import Json.Decode.Pipeline exposing (decode, required, optional)
-import Task
+import Json.Decode exposing (Decoder, succeed, string, list, int, at, field)
+import Json.Decode.Extra exposing (..)
 
 import HttpBuilder exposing(..)
 
@@ -31,10 +31,12 @@ type alias Package =
   , collaborators : Int
   , extensions    : List String
   , dependencies  : List String
-  , dependents    : List String
+  , dependents  : List String
   , created_at    : String
   , updated_at    : String
-  }
+  , all_dependencies : Int
+  , all_dependents   : Int
+}
 
 type alias Packages = List Package
 
@@ -43,7 +45,7 @@ type alias Model =
   , error : Maybe String
   }
 
-main : Program Never
+main : Program Never Model Msg
 main =
   App.program
     { init = ({packages = [], error = Nothing}, Cmd.none)
@@ -53,8 +55,10 @@ main =
     }
 
 view : Model -> Html Msg
+view _ = header [] []
 
 update : Msg -> Model -> ( Model, Cmd Msg )
+update _ model = (model, Cmd.none)
 
 -- private functions
 apiUrl : String -> String
@@ -63,23 +67,27 @@ apiUrl = (++) "http://localhost:3000"
 searchUrl : String
 searchUrl = apiUrl "/rpc/package_search"
 
+renderSearch : Result Error Packages -> Msg
+renderSearch r =
+  case r of
+    Err httpError -> toError httpError
+    Ok packages -> FetchPackages (Ok packages)
+
 searchPackages : String -> Cmd Msg
 searchPackages query =
-  let
-    body = Encode.object
-      [ ("query", Encode.string query) ]
-  in
-    post searchUrl
-      |> withHeaders [("Content-Type", "application/json"), ("Accept", "application/json")]
-      |> withJsonBody body
-      |> (send (jsonReader decodeModel) stringReader)
-      |> Task.perform toError toOk
+    let
+        body = Encode.object
+               [ ("query", Encode.string query) ]
+    in
+        post searchUrl
+            |> withHeaders [("Accept", "application/json")]
+            |> withHeader "Range" "0-99"
+            |> withJsonBody body
+            |> withExpect (Http.expectJson decodePackages)
+            |> send renderSearch
 
 toError : a -> Msg
 toError _ = FetchPackages (Err "There was an error in our search API, please try again later")
-
-toOk : Response Packages -> Msg
-toOk r = FetchPackages (Ok r.data)
 
 errorAlert : Model -> Html msg
 errorAlert model =
@@ -156,24 +164,27 @@ packageView model =
       ]
     ]
 
-decodeModel : Decoder Packages
-decodeModel =
-  decode Package
-    |> required "package_name" string
-    |> required "version" string
-    |> required "license" string
-    |> required "description" string
-    |> required "category" string
-    |> required "homepage" string
-    |> required "package_url" string
-    |> required "repo_type" string
-    |> required "repo_location" string
-    |> required "stars" int
-    |> required "forks" int
-    |> required "collaborators" int
-    |> required "extensions" (list string)
-    |> required "dependencies" (list string)
-    |> required "dependents" (list string)
-    |> required "created_at" string
-    |> required "updated_at" string
-    |> list
+decodePackages : Decoder Packages
+decodePackages =
+  list (
+    succeed Package
+      |: (field "package_name" string)
+      |: (field "version" string)
+      |: (field "license" string)
+      |: (field "description" string)
+      |: (field "category" string)
+      |: (field "homepage" string)
+      |: (field "package_url" string)
+      |: (field "repo_type" string)
+      |: (field "repo_location" string)
+      |: (field "stars" int)
+      |: (field "forks" int)
+      |: (field "collaborators" int)
+      |: (field "extensions" (list string))
+      |: (field "dependencies" (list string))
+      |: (field "dependents" (list string))
+      |: (field "created_at" string)
+      |: (field "updated_at" string)
+      |: (field "all_dependencies" int)
+      |: (field "all_dependents" int)
+  )
