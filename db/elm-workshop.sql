@@ -3,6 +3,8 @@ CREATE DATABASE elm_workshop;
 \c elm_workshop
 CREATE EXTENSION unaccent;
 CREATE EXTENSION pg_trgm;
+CREATE EXTENSION pgcrypto;
+CREATE EXTENSION pgjwt;
 -- Private data structures
 
 CREATE TABLE public.packages (
