@@ -20,3 +20,6 @@ The tutorial is divided in x steps:
 
  1. [Preparing the environment](src/1-environment)
  1. [Fetching and rendering packages](src/2-get-packages)
+ 1. [Search packages API](src/3-search-packages-api)
+ 1. [Search packages UI](src/4-search-packages-ui)
+ 1. Bonnus round - [Authentication](src/authentication)
