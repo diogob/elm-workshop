@@ -9,12 +9,14 @@ import Http exposing (Error)
 import Json.Encode as Encode
 import Json.Decode exposing (Decoder, succeed, string, list, int, at, field)
 import Json.Decode.Extra exposing (..)
+import Debug exposing (log)
 
 import HttpBuilder exposing(..)
 
 type Msg
-  = SearchPackages String
-  | FetchPackages (Result String Packages)
+  = FetchPackages Int
+  | RenderPackages Packages
+  | Error String
 
 type alias Package =
   { package_name  : String
@@ -34,8 +36,6 @@ type alias Package =
   , dependents  : List String
   , created_at    : String
   , updated_at    : String
-  , all_dependencies : Int
-  , all_dependents   : Int
 }
 
 type alias Packages = List Package
@@ -48,46 +48,35 @@ type alias Model =
 main : Program Never Model Msg
 main =
   App.program
-    { init = ({packages = [], error = Nothing}, Cmd.none)
+    { init = init
     , update = update
     , view = view
     , subscriptions = \_ -> Sub.none
     }
 
+init : ( Model, Cmd Msg )
+
 view : Model -> Html Msg
-view _ = header [] []
+view model =
+    header []
+    [ topBar
+    , Html.main_
+        [ class "app-body flex demo" ]
+        [ p [] [text "Replace this <p> element with the function call that will render the packages"] ]
+    ]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model = (model, Cmd.none)
+update action model =
+  case action of
+    _ ->
+        (model, Cmd.none)
 
 -- private functions
 apiUrl : String -> String
 apiUrl = (++) "http://localhost:3000"
 
-searchUrl : String
-searchUrl = apiUrl "/rpc/package_search"
-
-renderSearch : Result Error Packages -> Msg
-renderSearch r =
-  case r of
-    Err httpError -> toError httpError
-    Ok packages -> FetchPackages (Ok packages)
-
-searchPackages : String -> Cmd Msg
-searchPackages query =
-    let
-        body = Encode.object
-               [ ("query", Encode.string query) ]
-    in
-        post searchUrl
-            |> withHeaders [("Accept", "application/json")]
-            |> withHeader "Range" "0-99"
-            |> withJsonBody body
-            |> withExpect (Http.expectJson decodePackages)
-            |> send renderSearch
-
-toError : a -> Msg
-toError _ = FetchPackages (Err "There was an error in our search API, please try again later")
+packagesUrl : String
+packagesUrl = apiUrl "/packages"
 
 errorAlert : Model -> Html msg
 errorAlert model =
@@ -97,19 +86,6 @@ errorAlert model =
       div [ class "alert alert-danger" ]
             [ text msg
             ]
-
-searchView : Html Msg
-searchView =
-   div [ class "row" ]
-    [ div [ class "col-lg-12" ]
-        [ input
-            [ placeholder "Search package"
-            , onInput SearchPackages
-            , class "form-control"
-            ]
-            []
-        ]
-    ]
 
 topBar : Html msg
 topBar =
@@ -185,6 +161,25 @@ decodePackages =
       |: (field "dependents" (list string))
       |: (field "created_at" string)
       |: (field "updated_at" string)
-      |: (field "all_dependencies" int)
-      |: (field "all_dependents" int)
   )
+
+
+getPackages : List (String, String) -> Cmd Msg
+getPackages query =
+    get packagesUrl
+        |> withQueryParams query
+        |> withHeader "Range" "0-9"
+        |> withExpect (Http.expectJson decodePackages)
+        |> send renderPackages
+
+getLimitPackages : Cmd Msg
+getLimitPackages = getPackages [("limit", "10")]
+
+renderPackages : Result Error Packages -> Msg
+renderPackages r =
+  case r of
+    Err httpError -> toError httpError
+    Ok packages -> RenderPackages packages
+
+toError : a -> Msg
+toError _ = Error "API Error"

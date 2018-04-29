@@ -13,3 +13,10 @@ First make sure you have the software to run the backend installed:
 
  * [PostgreSQL](http://www.postgresql.org)
  * [PostgREST](http://postgrest.com) - to run the REST api server.
+
+## Getting started
+
+The tutorial is divided in x steps:
+
+ 1. [Preparing the environment](src/1-environment)
+ 1. [Fetching and rendering packages](src/2-get-packages)
