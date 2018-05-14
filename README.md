@@ -9,7 +9,7 @@ The keynote presentation and a PDF version are available in the [presentation fo
 
 ## Setting up the backend
 
-First make sure you have the software to run the backend installed:
+First make sure you have the proper software to run the backend:
 
  * [PostgreSQL](http://www.postgresql.org)
  * [PostgREST](http://postgrest.com) - to run the REST api server.
@@ -22,4 +22,4 @@ The tutorial is divided in x steps:
  1. [Fetching and rendering packages](src/2-get-packages)
  1. [Search packages API](src/3-search-packages-api)
  1. [Search packages UI](src/4-search-packages-ui)
- 1. Bonnus round - [Authentication](src/authentication)
+ 1. Bonus round - [Authentication](src/authentication)
