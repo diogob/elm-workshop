@@ -1,10 +1,6 @@
 CREATE DATABASE elm_workshop;
 
 \c elm_workshop
-CREATE EXTENSION unaccent;
-CREATE EXTENSION pg_trgm;
-CREATE EXTENSION pgcrypto;
-CREATE EXTENSION pgjwt;
 -- Private data structures
 
 CREATE TABLE public.packages (
@@ -102,7 +98,13 @@ WHERE
 -- API exposed through PostgREST
 CREATE SCHEMA api;
 
+CREATE EXTENSION pgcrypto;
+CREATE EXTENSION pgjwt;
+CREATE EXTENSION pg_trgm;
+
 CREATE USER postgrest PASSWORD 'temporary_password';
 CREATE ROLE anonymous;
 GRANT anonymous TO postgrest;
 GRANT USAGE ON SCHEMA api TO anonymous;
+
+
