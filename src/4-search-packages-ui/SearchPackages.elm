@@ -25,8 +25,6 @@ type Msg
   = FetchPackages Int
   | RenderPackages Packages
   | Error String
-  | QueryInput String
-  | SendQuery
 
 type alias Package =
   { package_name  : String
@@ -99,35 +97,13 @@ update action model =
   case action of
     RenderPackages packages ->
         ({model | packages = packages}, Cmd.none)
-    QueryInput query ->
-        ({ model | query = Just query }, Cmd.none)
-    SendQuery ->
-        ( model
-        , case model.query of
-              Nothing -> Cmd.none
-              Just query -> searchPackages query
-        )
-    _ ->
-        (model, Cmd.none)
 
 -- private functions
 apiUrl : String -> String
 apiUrl = (++) "http://localhost:3000"
 
-packagesUrl : String
-packagesUrl = apiUrl "/packages"
-
 searchPackagesUrl : String
 searchPackagesUrl = apiUrl "/rpc/search_packages"
-
-errorAlert : Model -> Html msg
-errorAlert model =
-  case model.error of
-    Nothing -> br [] []
-    Just msg ->
-      div [ class "alert alert-danger" ]
-            [ text msg
-            ]
 
 separator : Html msg
 separator = text " - "
@@ -202,26 +178,13 @@ decodePackages =
 searchPackages : String -> Cmd Msg
 searchPackages query =
     let
-        body = Encode.object
-               [ ("query", Encode.string query) ]
+        body = Encode.object []
     in
         post searchPackagesUrl
-            |> withHeaders [("Accept", "application/json")]
-            |> withHeader "Range" "0-99"
+            |> withHeaders [("Accept", "application/json"), ("Range", "0-9")]
             |> withJsonBody body
             |> withExpect (Http.expectJson decodePackages)
             |> send renderPackages
-
-getPackages : List (String, String) -> Cmd Msg
-getPackages query =
-    get packagesUrl
-        |> withQueryParams query
-        |> withHeader "Range" "0-9"
-        |> withExpect (Http.expectJson decodePackages)
-        |> send renderPackages
-
-getLimitPackages : Cmd Msg
-getLimitPackages = getPackages [("limit", "10")]
 
 renderPackages : Result Error Packages -> Msg
 renderPackages r =

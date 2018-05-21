@@ -114,9 +114,6 @@ update action model =
 apiUrl : String -> String
 apiUrl = (++) "http://localhost:3000"
 
-packagesUrl : String
-packagesUrl = apiUrl "/packages"
-
 searchPackagesUrl : String
 searchPackagesUrl = apiUrl "/rpc/search_packages"
 
@@ -206,22 +203,10 @@ searchPackages query =
                [ ("query", Encode.string query) ]
     in
         post searchPackagesUrl
-            |> withHeaders [("Accept", "application/json")]
-            |> withHeader "Range" "0-99"
+            |> withHeaders [("Accept", "application/json"), ("Range", "0-9")]
             |> withJsonBody body
             |> withExpect (Http.expectJson decodePackages)
             |> send renderPackages
-
-getPackages : List (String, String) -> Cmd Msg
-getPackages query =
-    get packagesUrl
-        |> withQueryParams query
-        |> withHeader "Range" "0-9"
-        |> withExpect (Http.expectJson decodePackages)
-        |> send renderPackages
-
-getLimitPackages : Cmd Msg
-getLimitPackages = getPackages [("limit", "10")]
 
 renderPackages : Result Error Packages -> Msg
 renderPackages r =
