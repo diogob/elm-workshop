@@ -26,6 +26,7 @@ type Msg
   | RenderPackages Packages
   | Error String
   | QueryInput String
+  | SendQuery
 
 type alias Package =
   { package_name  : String
@@ -82,7 +83,7 @@ view model =
             [ InputGroup.config
                 ( InputGroup.text [Input.onInput QueryInput, Input.placeholder "Search for" ] )
                 |> InputGroup.successors
-                    [ InputGroup.button [ Button.secondary ] [ text "Search"] ]
+                    [ InputGroup.button [ Button.onClick SendQuery, Button.secondary ] [ text "Search"] ]
                 |> InputGroup.view
             ]
         ]
@@ -100,6 +101,12 @@ update action model =
         ({model | packages = packages}, Cmd.none)
     QueryInput query ->
         ({ model | query = Just query }, Cmd.none)
+    SendQuery ->
+        ( model
+        , case model.query of
+              Nothing -> Cmd.none
+              Just query -> searchPackages query
+        )
     _ ->
         (model, Cmd.none)
 
@@ -109,6 +116,9 @@ apiUrl = (++) "http://localhost:3000"
 
 packagesUrl : String
 packagesUrl = apiUrl "/packages"
+
+searchPackagesUrl : String
+searchPackagesUrl = apiUrl "/rpc/search_packages"
 
 errorAlert : Model -> Html msg
 errorAlert model =
@@ -189,6 +199,18 @@ decodePackages =
       |: (field "updated_at" string)
   )
 
+searchPackages : String -> Cmd Msg
+searchPackages query =
+    let
+        body = Encode.object
+               [ ("query", Encode.string query) ]
+    in
+        post searchPackagesUrl
+            |> withHeaders [("Accept", "application/json")]
+            |> withHeader "Range" "0-99"
+            |> withJsonBody body
+            |> withExpect (Http.expectJson decodePackages)
+            |> send renderPackages
 
 getPackages : List (String, String) -> Cmd Msg
 getPackages query =
