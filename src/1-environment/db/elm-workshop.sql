@@ -102,7 +102,7 @@ CREATE EXTENSION pgcrypto;
 CREATE EXTENSION pgjwt;
 CREATE EXTENSION pg_trgm;
 
-CREATE USER postgrest PASSWORD 'temporary_password';
+CREATE USER postgrest NOINHERIT PASSWORD 'temporary_password';
 CREATE ROLE anonymous;
 GRANT anonymous TO postgrest;
 GRANT USAGE ON SCHEMA api TO anonymous;
