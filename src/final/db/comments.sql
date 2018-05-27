@@ -14,6 +14,7 @@ CREATE TABLE public.comments (
 
 CREATE OR REPLACE VIEW api.comments AS
 SELECT
+  email,
   package_name,
   content,
   created_at
