@@ -99,7 +99,6 @@ WHERE
 CREATE SCHEMA api;
 
 CREATE EXTENSION pgcrypto;
-CREATE EXTENSION pgjwt;
 CREATE EXTENSION pg_trgm;
 
 CREATE USER postgrest NOINHERIT PASSWORD 'temporary_password';

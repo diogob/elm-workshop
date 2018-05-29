@@ -1,0 +1,19 @@
+postgrest:
+  image: postgrest/postgrest
+  ports:
+    - "3000:3000"
+  links:
+    - postgres:postgres
+  environment:
+    PGRST_DB_URI: postgres://postgrest:temporary_password@postgres:5432/elm_workshop
+    PGRST_DB_SCHEMA: api
+    PGRST_DB_ANON_ROLE: anonymous
+
+postgres:
+  image: postgres:alpine
+  ports:
+    - "5432:5432"
+  environment:
+    POSTGRES_DB: elm_workshop
+    POSTGRES_USER: postgrest
+    POSTGRES_PASSWORD: temporary_password
