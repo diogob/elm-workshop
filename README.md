@@ -7,12 +7,16 @@ that repo out for a more complete example.
 
 The keynote presentation and a PDF version are available in the [presentation folder](https://github.com/diogob/elm-workshop/tree/master/presentation).
 
-## Setting up the backend
+## Setting up the environment
 
 First make sure you have the proper software to run the backend:
 
  * [PostgreSQL](http://www.postgresql.org)
  * [PostgREST](http://postgrest.com) - to run the REST api server.
+
+An easy alternative for those who have docker installed is to use the [docker compose file provided](docker-compose.yml).
+
+You will also need to install [Elm development tools](https://guide.elm-lang.org/install.html).
 
 ## Getting started
 
